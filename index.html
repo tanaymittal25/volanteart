@@ -23,12 +23,12 @@
 		<div class="wrap-login100 p-l-55 p-r-55 p-t-80 p-b-30">
 
 			<form class="login100-form validate-form">
-				<span class="login100-form-title p-b-37">
-					Salesforce - Heroku - Designer
-				</span>
+				<div class="login100-form-title p-b-37">
+					<u>Salesforce Heroku Designer</u>
+				</div>
 
 				<div class="container-login100-form-btn">
-					<button type = "button" class="login100-form-btn" onclick="goToSlaesforce();">
+					<button type = "button" class="login100-form-btn" onclick="goto_salesforce();">
 					Sign In With Salesforce
 					</button>
 				</div>
@@ -43,8 +43,8 @@
 
 	<div id="dropDownSelect1"></div>
 	<script type="text/javascript">
-		function goToSlaesforce() {
-            window.location.href = "https://login.salesforce.com/services/oauth2/authorize?client_id=3MVG9G9pzCUSkzZsX.NWW0D2e1TRp1Pi70LCLaFheELDeCgqFgoSv7iD1cRNRcvxBRhCgfsZFz.ceDEbDKUvQ&redirect_uri=https://volanteart.herokuapp.com/rest/accept&scope=full&response_type=code&response_mode=query&nonce=4mdgcvls7nx";
+		function goto_salesforce() {
+            window.location.href = "https://login.salesforce.com/services/oauth2/authorize?client_id=3MVG9G9pzCUSkzZsX.NWW0D2e1TRp1Pi70LCLaFheELDeCgqFgoSv7iD1cRNRcvxBRhCgfsZFz.ceDEbDKUvQ&redirect_uri=https://volanteart.herokuapp.com/heroku.html&scope=full&response_type=code&response_mode=query&nonce=4mdgcvls7nx";
             return false;
 	}
 	</script>

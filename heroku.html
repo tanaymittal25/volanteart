@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Art Connect</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="icon" type="image/png" href="images/icons/favicon.ico"/>
+	<link rel="stylesheet" type="text/css" href="vendor/bootstrap/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="fonts/font-awesome-4.7.0/css/font-awesome.min.css">
+	<link rel="stylesheet" type="text/css" href="fonts/iconic/css/material-design-iconic-font.min.css">
+	<link rel="stylesheet" type="text/css" href="vendor/animate/animate.css">
+	<link rel="stylesheet" type="text/css" href="vendor/css-hamburgers/hamburgers.min.css">
+	<link rel="stylesheet" type="text/css" href="vendor/animsition/css/animsition.min.css">
+	<link rel="stylesheet" type="text/css" href="vendor/select2/select2.min.css">
+	<link rel="stylesheet" type="text/css" href="vendor/daterangepicker/daterangepicker.css">
+	<link rel="stylesheet" type="text/css" href="css/util.css">
+	<link rel="stylesheet" type="text/css" href="css/main.css">
+</head>
+<script
+  src="https://code.jquery.com/jquery-3.4.1.js"
+  integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU="
+  crossorigin="anonymous"></script>
+<body>
+	
+	
+	<div class="container-login100" style="background-image: url('images/volante_logo.png');background-repeat: no-repeat;background-size: 55%;background-position: 50% 12%;">
+		<div class="wrap-login100 p-l-55 p-r-55 p-t-80 p-b-30">
+
+			<div class="login100-form validate-form">
+				<div class="login100-form-title p-b-37">
+					<u>Salesforce Heroku Designer</u>
+				</div>
+				<p id="loading">Loading...</p>
+				<b>
+					<div style="color:red;" id="error">
+				    </div>
+				</b>
+				<b>
+					<div id="result" class="text-center txt1 p-t-5 p-b-20"></div>
+				</b>
+			    <div id="searchAccountNames">
+			    	<div class="text-center p-t-5 p-b-20">
+						<b>Enter Account ID</b>
+					</div>
+				    <div class="wrap-input100 m-b-20">
+						<input class="input100" list = "IDs" type="text" id="acc_id" placeholder="Account ID">
+						<span class="focus-input100"></span>
+						<datalist id="IDs"></datalist>
+					</div>
+					<div class="container-login100-form-btn">
+						<button type = "button" class="login100-form-btn" onclick="get_account_details();">
+							Search by Account
+						</button>
+					</div>
+				</div>
+			</div>
+
+			
+		</div>
+	</div>
+	
+	
+
+	<div id="dropDownSelect1"></div>
+	<script type="text/javascript">
+
+		//Function to get query parameters to get the OAuth code
+		function getQueryStringValue (key) {
+				if(searchParams.has(key)) {
+					return searchParams.get(key);  
+				}
+				else 
+					return null;
+		}  
+
+		//Function to display the input option
+		function showFields() {
+					$("#error").hide();
+					$("#searchAccountNames").show();
+		}
+
+		//To populate the dropdown with Ids from salesforce 
+		function populateIds(item, index) {
+			  $("#IDs").append('<option id='+item["Id"]+'>'+item["Name"]+'</option>');
+		}
+
+		var corsUrl = "";
+		var acc_ids;
+		//var app_url = "http://localhost:8080/login_module/";
+		//var corsUrl = 'https://cors-anywhere.herokuapp.com/';
+		var app_url = 'https://volanteart.herokuapp.com/';
+		let searchParams = new URLSearchParams(window.location.search);
+		$("#loading").show();
+		$("#result").hide();
+		$("#searchAccountNames").hide();
+		$("#error").hide();
+		var query_result;
+		var oauthCode = getQueryStringValue("code");
+		var accessToken ="";
+
+		//To check if there is an OAuth code and get access token
+		if (oauthCode!="") {
+			console.log("oauthCode:"+oauthCode); 
+				$.ajax({ 
+			    type: 'GET', 
+			    url: corsUrl+app_url+'rest/accept?code='+oauthCode, 
+				success: function (data,ajaxContext) {
+					$("#loading").hide(); 
+					accessToken = ajaxContext.responseText.toString();
+					if(accessToken.indexOf("error")==-1)
+			        	showFields();
+					console.log("AccessToken_response_s:"+accessToken);
+					fetchIds();
+			    },
+			    error: function (ajaxContext) {
+			    	$("#loading").hide();
+			        accessToken = ajaxContext.responseText.toString(); 
+			        if(accessToken.indexOf("error")==-1)
+			        	showFields();
+			        else
+			      		$("#error").text("Oops! Unable to obtain a valid access token").show();
+					console.log("AccessToken_response_e:"+accessToken);
+					fetchIds();
+			    }
+			});
+		}
+		else {
+			$("#loading").hide();
+			$("#error").text("Oops! Unable to obtain a valid access token").show();
+		}
+
+	//To get the Ids for dropdown from salesforce
+	function fetchIds() {
+		if(accessToken!="") {
+			console.log("Starting to fetch IDs...");
+			var corsUrl = 'https://cors-anywhere.herokuapp.com/';
+			$.ajax({ 
+				    type: 'GET', 
+				    url: corsUrl+'https://ap15.salesforce.com/services/data/v46.0/query?q=SELECT+ID+,+Name+from+Account',
+				    datatype:"application/json",
+				    beforeSend: function (jqXHR, settings) {
+					        jqXHR.setRequestHeader('Authorization', 'Bearer ' + accessToken);
+					    },
+					success: function (data) {
+				  		acc_ids = data["records"];
+				  		acc_ids.forEach(populateIds);
+						console.log("Success: IDs form salesforce fetched");
+				    },
+				    error: function (ajaxContext) {
+						console.log("error:"+ajaxContext.responseText);
+				    }
+			});
+			corsUrl= "";
+		}
+	}
+
+	//Function to get Account details
+	function get_account_details() {
+		$("#loading").show();
+		$("#result").hide();
+		$("#searchAccountNames").hide();
+		var acc_name_input = $("#acc_id").val();
+		var acc_id_input = "";
+		//To get the account Id of the account name selected
+		acc_ids.forEach(function (item, index) {
+			  if(item["Name"]==acc_name_input) 
+			  	acc_id_input=item["Id"];
+		});
+		if(acc_id_input=="") {
+			$("#error").text("Enter a Valid ID").show();
+			$("#loading").hide();
+			$("#result").hide();
+			$("#searchAccountNames").show();
+		}
+		else {
+			console.log("acc_id_input:"+acc_id_input);
+
+			$.ajax({ 
+			    type: 'GET',
+			    url: corsUrl+app_url+'rest/account?acc_id='+acc_id_input+'&token='+accessToken, 
+				success: function (data,ajaxContext) { 
+					$("#loading").hide();
+					console.log("query_data_json:"+data);
+					console.log("query_data_string"+JSON.stringify(data));
+					$("#error").hide();
+					var display_fields = "<p>Name:"+data["Name"]+"</p>"+"<p>Account Number:"+data["AccountNumber"]+"</p>"+"<p>Annual revenue:"+data["AnnualRevenue"]+"</p>"+"<p>Industry:"+data["Industry"]+"</p>"+"<p>Description:"+data["Description"]+"</p>";
+					$("#result").html(display_fields).show();
+					$("#searchAccountNames").show();
+					query_result = data;
+			    },
+			    error: function (ajaxContext) {
+			    	console.log("query_data_json_e:"+ajaxContext);
+			    	$("#loading").hide();
+			    	$("#result").hide();
+			    	$("#searchAccountNames").show();
+			      	$("#error").text("Enter a Valid ID").show();
+			    }
+			});
+		}
+
+	}
+	</script>
+	<script src="vendor/animsition/js/animsition.min.js"></script>
+	<script src="vendor/bootstrap/js/popper.js"></script>
+	<script src="vendor/bootstrap/js/bootstrap.min.js"></script>
+	<script src="vendor/select2/select2.min.js"></script>
+	<script src="vendor/daterangepicker/moment.min.js"></script>
+	<script src="vendor/daterangepicker/daterangepicker.js"></script>
+	<script src="vendor/countdowntime/countdowntime.js"></script>
+	<script src="js/main.js"></script>
+
+</body>
+</html>
+
